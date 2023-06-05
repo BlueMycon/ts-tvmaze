@@ -6,7 +6,7 @@ const $episodesArea: JQuery = $("#episodesArea");
 const $episodesList: JQuery = $("#episodesList");
 const $searchForm: JQuery = $("#searchForm");
 const BASE_URL: string = "https://api.tvmaze.com/";
-const default_image = "https://tinyurl.com/tv-missing";
+const default_image: string = "https://tinyurl.com/tv-missing";
 
 interface showInterface {
   id: number;
@@ -14,6 +14,18 @@ interface showInterface {
   summary: string;
   image?: string;
 }
+
+interface showInterfaceAPI extends Omit<showInterface, "image"> {
+  image: { original: string } | null;
+}
+
+interface episodeInterface {
+  id: number;
+  name: string;
+  season: string;
+  number: string;
+}
+
 /** Given a search term, search for tv shows that match that query.
  *
  *  Returns (promise) array of show objects: [show, show, ...].
@@ -21,13 +33,14 @@ interface showInterface {
  *    (if no image URL given by API, put in a default image URL)
  */
 
-async function getShowsByTerm(term: string): Promise<[showInterface]> {
+async function getShowsByTerm(term: string): Promise<showInterface[]> {
   // ADD: Remove placeholder & make request to TVMaze search shows API.
   const response: AxiosResponse = await axios(
     `${BASE_URL}/search/shows?q=${term}`
   );
-  const shows: [showInterface] = response.data.map(
-    (elem: Record<string, any>): showInterface => {
+
+  const shows: showInterface[] = response.data.map(
+    (elem: { show: showInterfaceAPI }): showInterface => {
       return {
         id: elem.show.id,
         name: elem.show.name,
@@ -42,7 +55,7 @@ async function getShowsByTerm(term: string): Promise<[showInterface]> {
 
 /** Given list of shows, create markup for each and to DOM */
 
-function populateShows(shows: [showInterface]): void {
+function populateShows(shows: showInterface[]): void {
   $showsList.empty();
 
   for (let show of shows) {
@@ -50,7 +63,7 @@ function populateShows(shows: [showInterface]): void {
       `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
            <img
-              src="${show.image || default_image}"
+              src="${show.image}"
               alt="Bletchly Circle San Francisco"
               class="w-25 me-3">
            <div class="media-body">
@@ -86,43 +99,41 @@ $showsList.on(
 
 async function searchForShowAndDisplay(): Promise<void> {
   const term: string = $("#searchForm-term").val() as string;
-  const shows: [showInterface] = await getShowsByTerm(term);
+  const shows: showInterface[] = await getShowsByTerm(term);
 
   $episodesArea.hide();
   populateShows(shows);
 }
 
-$searchForm.on("submit", async function (evt: JQuery.SubmitEvent) {
-  evt.preventDefault();
-  await searchForShowAndDisplay();
-});
-
-interface episodeInterface {
-  id: number;
-  name: string;
-  season: string;
-  number: string;
-}
+$searchForm.on(
+  "submit",
+  async function (evt: JQuery.SubmitEvent): Promise<void> {
+    evt.preventDefault();
+    await searchForShowAndDisplay();
+  }
+);
 
 /** Given a show ID, get from API and return (promise) array of episodes:
  *      { id, name, season, number }
  */
 
-async function getEpisodesOfShow(id: number): Promise<[episodeInterface]> {
+async function getEpisodesOfShow(id: number): Promise<episodeInterface[]> {
   const response: AxiosResponse = await axios(
     `${BASE_URL}shows/${id}/episodes`
   );
-  const episodes: [episodeInterface] = response.data.map(
+
+  const episodes: episodeInterface[] = response.data.map(
     ({ id, name, season, number }: episodeInterface): episodeInterface => {
       return { id, name, season, number };
     }
   );
+  
   return episodes;
 }
 
 /** Write a clear docstring for this function... */
 
-function populateEpisodes(episodes: [episodeInterface]): void {
+function populateEpisodes(episodes: episodeInterface[]): void {
   $episodesList.empty();
 
   for (let episode of episodes) {
@@ -145,7 +156,7 @@ function populateEpisodes(episodes: [episodeInterface]): void {
  */
 
 async function getEpisodesAndDisplay(showId: number): Promise<void> {
-  const episodes: [episodeInterface] = await getEpisodesOfShow(showId);
+  const episodes: episodeInterface[] = await getEpisodesOfShow(showId);
 
   populateEpisodes(episodes);
 }
