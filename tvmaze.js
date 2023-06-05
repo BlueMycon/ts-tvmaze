@@ -12575,7 +12575,7 @@ var $episodesArea = $("#episodesArea");
 var $episodesList = $("#episodesList");
 var $searchForm = $("#searchForm");
 var BASE_URL = "https://api.tvmaze.com/";
-var default_image = 'https://tinyurl.com/tv-missing';
+var default_image = "https://tinyurl.com/tv-missing";
 /** Given a search term, search for tv shows that match that query.
  *
  *  Returns (promise) array of show objects: [show, show, ...].
@@ -12593,10 +12593,10 @@ function getShowsByTerm(term) {
                     shows = response.data.map(function (elem) {
                         var _a;
                         return {
-                            "id": elem.show.id,
-                            "name": elem.show.name,
-                            "summary": elem.show.summary,
-                            "image": ((_a = elem.show.image) === null || _a === void 0 ? void 0 : _a.original) || default_image
+                            id: elem.show.id,
+                            name: elem.show.name,
+                            summary: elem.show.summary,
+                            image: ((_a = elem.show.image) === null || _a === void 0 ? void 0 : _a.original) || default_image,
                         };
                     });
                     return [2 /*return*/, shows];
@@ -12675,9 +12675,8 @@ function getEpisodesOfShow(id) {
                     response = _a.sent();
                     episodes = response.data.map(function (_a) {
                         var id = _a.id, name = _a.name, season = _a.season, number = _a.number;
-                        return ({ id: id, name: name, season: season, number: number });
+                        return { id: id, name: name, season: season, number: number };
                     });
-                    console.log('episodes', episodes);
                     return [2 /*return*/, episodes];
             }
         });
@@ -12686,7 +12685,6 @@ function getEpisodesOfShow(id) {
 /** Write a clear docstring for this function... */
 function populateEpisodes(episodes) {
     $episodesList.empty();
-    console.log('populate episodes', episodes);
     for (var _i = 0, episodes_1 = episodes; _i < episodes_1.length; _i++) {
         var episode = episodes_1[_i];
         var $episode = $("<li data-episode-id=\"".concat(episode.id, "\">\n        ").concat(episode.name, " (season ").concat(episode.season, ", number ").concat(episode.number, ")\n       </li>\n      "));
